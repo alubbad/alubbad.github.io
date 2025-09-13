@@ -1,0 +1,184 @@
+<head>
+    <title>Project 1: Images of the Russian Empire</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <h1>CS180 Project 1 — Images of the Russian Empire</h1>
+    <div class="container">
+    <h2> Project Overview</h2>
+    <p>This project's goal is to reconstruct color photos from Prokudin-Gorskii’s digitized glass plates, where each plate is a grayscale image containing blue green, 
+        and red exposures stacked vertically. By splitting the images into the RGB color channels, I created an algorithm using translation methods to align these glass 
+        plates and reconstruct the colored images. I started with a single-scale alignment implementation for the jpg images, and then had to optimize my algorithm to a 
+        multiscale pyramid implementation for the larger tif files.
+
+    </p>
+    <h2>Part 1: Single Scale Alignment</h2>
+    <p>I used an integer shift search around the center of the image with range [-15,15].
+        I used the green channel image as the reference image, then for each of the red 
+        and blue images, I looped over the the dy and dx displacements, overlapped the image 
+        onto the reference, and scored the match using normalized cross correlation. 
+        Through this, I found the displacement with the highest NCC score and then used 
+        that to shift the red and blue images to align the color channels.
+        <br><br>
+        I initially implemented this algorithm with blue as the reference image which produced 
+        the same results. Moreover, I had to crop the images by 10% before comparing alignments 
+        since the borders negatively affected the alignment of the images.
+    </p> 
+    <div class="row">
+        <figure>
+            <img src="media/cathedral_out.jpg" alt="Cathedral" />
+            <figcaption style="font-weight:bold">Cathedral</figcaption>
+            <figcaption style="font-size:1em">Blue shift: (-2, -5)</figcaption>
+            <figcaption style="font-size:1em">Red shift: (1, 7)</figcaption>
+        </figure>
+        <figure>
+            <img src="media/tobolsk_out.jpg" alt="Tobolsk" />
+            <figcaption style="font-weight:bold">Tobolsk</figcaption>
+            <figcaption style="font-size:1em">Blue shift: (-3, -3)</figcaption>
+            <figcaption style="font-size:1em">Red shift: (1, 4)</figcaption>
+        </figure>
+        <figure>
+            <img src="media/monastery_out.jpg" alt="Monastery" />
+            <figcaption style="font-weight:bold">Monastery</figcaption>
+            <figcaption style="font-size:1em">Blue shift: (-2, 3)</figcaption>
+            <figcaption style="font-size:1em">Red shift: (1, 6)</figcaption>
+        </figure>
+    </div>
+</div>
+    <div class="container">
+    <h2>Part 2: Multi-Scale Pyramid Alignment</h2>
+    <p>To create the image pyramid, I added recursive calls to my single-scale implementation. To determine the number of 
+        levels I wanted my pyramid to have, I had to decide on a minimum pixel size of 250 for the width and height of the 
+        image. Then in each recursive step, I downsampled the image by half and called the pyramid function on the new smaller image.
+        For the base case, which is the smallest image level, I called on my single-scale alignment function with a search radius of 
+        [-15,15]. For each of the higher levels, I would receive the best displacement from the lower level then have to double it to 
+        account for the new resolution and doubled image size. I would then refine it further by searching through a small displacement range 
+        of [-5,5] from the displacement the level recieved.
+        <br>
+        <br>
+        To speed up my algorithm and improve scoring, I also applied a fixed crop of 10% on the image before aligning at every level.
+        I had to play around with the values for the radius and minimum pixel size to make my function faster, and the values above were
+        the fastest. I also initially aligned red and green channels to blue, but some of the images (such as emir.tif, melons.tif, 
+        and self-portriat.tif) has trouble aligning fully due to the red channel's misalignment. Therefore, I thought that changing the 
+        channel that I am aligning on would yield better results, and I was correct. Aligning the blue and red channels to the green channel
+        showed significant improvements.
+    </p>
+    <div class="row">
+        <figure>
+            <img src="media/cathedral_pyramid.jpg" alt="Cathedral With Pyramid" />
+            <figcaption style="font-weight:bold">Cathedral</figcaption>
+            <figcaption style="font-size:1em">Blue shift: (-2, -5)</figcaption>
+            <figcaption style="font-size:1em">Red shift: (1, 7)</figcaption>
+        </figure>
+        <figure>
+            <img src="media/tobolsk_pyramid.jpg" alt="Tobolsk With Pyramid" />
+            <figcaption style="font-weight:bold">Tobolsk</figcaption>
+            <figcaption style="font-size:1em">Blue shift: (-3, -3)</figcaption>
+            <figcaption style="font-size:1em">Red shift: (1, 4)</figcaption>
+        </figure>
+        <figure>
+            <img src="media/monastery_pyramid.jpg" alt="Monastery With Pyramid" />
+            <figcaption style="font-weight:bold">Monastery</figcaption>
+            <figcaption style="font-size:1em">Blue shift: (-2, 3)</figcaption>
+            <figcaption style="font-size:1em">Red shift: (1, 6)</figcaption>
+        </figure>
+    </div>
+    <div class="row">
+        <figure>
+            <img src="media/emir_out.jpg" alt="Emir" />
+            <figcaption style="font-weight:bold">Emir</figcaption>
+            <figcaption style="font-size:1em">Blue shift: (24, -49)</figcaption>
+            <figcaption style="font-size:1em">Red shift: (17, 57)</figcaption>
+        </figure>
+        <figure>
+            <img src="media/church_out.jpg" alt="Church" />
+            <figcaption style="font-weight:bold">Church</figcaption>
+            <figcaption style="font-size:1em">Blue shift: (-4, 25)</figcaption>
+            <figcaption style="font-size:1em">Red shift: (-8, 33)</figcaption>
+        </figure>
+        <figure>
+            <img src="media/harvesters_out.jpg" alt="Harvesters" />
+            <figcaption style="font-weight:bold">Harvesters</figcaption>
+            <figcaption style="font-size:1em">Blue shift: (-17, -60)</figcaption>
+            <figcaption style="font-size:1em">Red shift: (-3, 65)</figcaption>
+        </figure>
+    </div>
+    <div class="row">
+        <figure>
+            <img src="media/italil_out.jpg" alt="Italil" />
+            <figcaption style="font-weight:bold">Italil</figcaption>
+            <figcaption style="font-size:1em">Blue shift: (-21, -38)</figcaption>
+            <figcaption style="font-size:1em">Red shift: (15, 39)</figcaption>
+        </figure>
+        <figure>
+            <img src="media/icon_out.jpg" alt="Icon" />
+            <figcaption style="font-weight:bold">Icon</figcaption>
+            <figcaption style="font-size:1em">Blue shift: (-17, -41)</figcaption>
+            <figcaption style="font-size:1em">Red shift: (5, 48)</figcaption>
+        </figure>
+        <figure>
+            <img src="media/lastochikino_out.jpg" alt="Lastochikino" />
+            <figcaption style="font-weight:bold">Lastochikino</figcaption>
+            <figcaption style="font-size:1em">Blue shift: (2, 3)</figcaption>
+            <figcaption style="font-size:1em">Red shift: (-7, 78)</figcaption>
+        </figure>
+    </div>
+    <div class="row">
+        <figure>
+            <img src="media/lugano_out.jpg" alt="Lugano" />
+            <figcaption style="font-weight:bold">Lugano</figcaption>
+            <figcaption style="font-size:1em">Blue shift: (16, -41)</figcaption>
+            <figcaption style="font-size:1em">Red shift: (-13, 52)</figcaption>
+        </figure>
+        <figure>
+            <img src="media/melons_out.jpg" alt="Melons" />
+            <figcaption style="font-weight:bold">Melons</figcaption>
+            <figcaption style="font-size:1em">Blue shift: (-11, -82)</figcaption>
+            <figcaption style="font-size:1em">Red shift: (4, 96)</figcaption>
+        </figure>
+        <figure>
+            <img src="media/self_portrait_out.jpg" alt="Self Portrait" />
+            <figcaption style="font-weight:bold">Self Portrait</figcaption>
+            <figcaption style="font-size:1em">Blue shift: (-29, -79)</figcaption>
+            <figcaption style="font-size:1em">Red shift: (8, 98)</figcaption>
+        </figure>
+    </div>
+    <div class="row">
+        <figure>
+            <img src="media/siren_out.jpg" alt="Siren" />
+            <figcaption style="font-weight:bold">Siren</figcaption>
+            <figcaption style="font-size:1em">Blue shift: (6, -49)</figcaption>
+            <figcaption style="font-size:1em">Red shift: (-18, 47)</figcaption>
+        </figure>
+        <figure>
+            <img src="media/three_generations_out.jpg" alt="Three Generations" />
+            <figcaption style="font-weight:bold">Three Generations</figcaption>
+            <figcaption style="font-size:1em">Blue shift: (-14, -53)</figcaption>
+            <figcaption style="font-size:1em">Red shift: (-3, 58)</figcaption>
+        </figure>
+    </div>
+</div>
+    <div class="container">
+    <h2>Part 3: Additional Images</h2>
+    <div class="row">
+        <figure>
+            <img src="media/sunset_out.jpg" alt="Sunset" />
+            <figcaption style="font-weight:bold">Sunset</figcaption>
+            <figcaption style="font-size:1em">Blue shift: (-31, -51)</figcaption>
+            <figcaption style="font-size:1em">Red shift: (-22, 44)</figcaption>
+        </figure>
+        <figure>
+            <img src="media/peonies_out.jpg" alt="Peonies" />
+            <figcaption style="font-weight:bold">Peonies</figcaption>
+            <figcaption style="font-size:1em">Blue shift: (-3, -51)</figcaption>
+            <figcaption style="font-size:1em">Red shift: (-8, 54)</figcaption>
+        </figure>
+        <figure>
+            <img src="media/turkman_out.jpg" alt="Man With Camel" />
+            <figcaption style="font-weight:bold">Man With Camel</figcaption>
+            <figcaption style="font-size:1em">Blue shift: (-21, -56)</figcaption>
+            <figcaption style="font-size:1em">Red shift: (7, 60)</figcaption>
+        </figure>
+    </div>
+    </div>
+</body>
