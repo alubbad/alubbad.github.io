@@ -1,0 +1,378 @@
+<head>
+    <title>Project 2: Fun With Filters and Frequencies!</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <h1>CS180 Project 2 — Fun With Filters and Frequencies!</h1>
+    <h2>Part 1: Fun With Filters!</h2>
+    <div class="container">
+    <h3>Part 1.1: Convolutions from Scratch!</h3>
+    <p> I implemented convolutions using numpy in two ways. One is using four for loops and the other is using two for loops.
+        The code snippets below show my implementation. 
+        <br><br>
+        Convolutions with four for loops:
+        <br>
+        <pre><code class="language-python">def convolve_naive(A, kernel):
+    kernel = np.flipud(np.fliplr(kernel))
+    h,w = A.shape
+    fh, fw = kernel.shape
+    pad_h = fh // 2
+    pad_w = fw // 2
+    padded = np.zeros((h + 2*pad_h, w + 2*pad_w))
+    padded[pad_h:pad_h+h, pad_w:pad_w+w] = A
+    output = np.zeros((h,w))
+    for i in range(h):
+        for j in range(w):
+            sum_val = 0
+            for x in range(fh):
+                for y in range(fw):
+                    sum_val += padded[i+x,j+y]*kernel[x,y]
+            output[i,j] = sum_val
+    return output
+        </code></pre>
+    <p>Convolutions with two four loops (vectorized):</p>
+                <pre><code class="language-python">def convolve_faster(A, kernel):
+    kernel = np.flipud(np.fliplr(kernel))
+    h,w = A.shape
+    fh, fw = kernel.shape
+    pad_h = fh // 2
+    pad_w = fw // 2
+    padded = np.zeros((h + 2*pad_h, w + 2*pad_w))
+    padded[pad_h:pad_h+h, pad_w:pad_w+w] = A
+    output = np.zeros((h,w))
+    for i in range(h):
+        for j in range(w):
+            region = padded[i:i+fh,j:j+fw]
+            output[i,j] = np.sum(kernel*region)
+    return output
+        </code></pre>
+       <p>When I ran these convolution functions on my image using a box filter, I found that <code>convolve_naive</code> was the slowest and took a very long time to run. 
+        <code>convolve_faster</code> did better in terms of runtime than <code>convolve_naive</code>, but it was still somewhat slow compared to 
+        <code>scipy.signal.convolve2d</code>. The resulting blurred image was identical for all methods. The way the boundaries are handles seems to be the same because I chose the 'fill' option 
+        in convolve2d and had the fill_value be 0, which replicates my padding method in my convolution functions that I created from scratch.</p> 
+    </p> 
+
+    <p>
+        Below are the convolutions I applied to my image, which is an image of my uncle, including a smoothing filter (box filter) and the finite difference operators Dx and Dy.
+    </p>
+    <div class="row">
+        <figure>
+            <img src="media/1.1/original_edward.jpg" alt="Edward Said" />
+            <figcaption style="font-weight:bold">Original Image</figcaption>
+        </figure>
+        <figure>
+            <img src="media/1.1/smoothed_edward.jpg" alt="Smoothed Image" />
+            <figcaption style="font-weight:bold">Smoothed Image</figcaption>
+        </figure>
+        <figure>
+            <img src="media/1.1/Dx_edward.jpg" alt="Finite Difference Dx" />
+            <figcaption style="font-weight:bold">Finite Difference Dx</figcaption>
+        </figure>
+        <figure>
+            <img src="media/1.1/Dy_edward.jpg" alt="Finite Difference Dy" />
+            <figcaption style="font-weight:bold">Finite Difference Dy</figcaption>
+        </figure>
+    </div>
+    </div>
+<div class="container">
+    <h3>Part 1.2: Finite Difference Operator</h3>
+    <p>In this part, I took the cameraman image and convolved it with the finite difference operators Dx and Dy. I then combined them to 
+        show the gradient magnitude image and finally binarized the gradient magnitude image using a threshold of 0.25 to show the 
+        edges in the image.
+    </p>
+    <div class="row">
+        <figure>
+            <img src="media/1.2/finite_dx_camera.jpg" alt="Finite Difference Dx" />
+            <figcaption style="font-weight:bold">Finite Difference Dx</figcaption>
+        </figure>
+        <figure>
+            <img src="media/1.2/finite_dy_camera.jpg" alt="Finite Difference Dy" />
+            <figcaption style="font-weight:bold">Finite Difference Dy</figcaption>
+        </figure>
+        <figure>
+            <img src="media/1.2/finite_edge_camera.jpg" alt="Gradient Magnitude Image" />
+            <figcaption style="font-weight:bold">Gradient Magnitude Image</figcaption>
+        </figure>
+        <figure>
+            <img src="media/1.2/finite_binary_camera.jpg" alt="Binarized Edge Image" />
+            <figcaption style="font-weight:bold">Binarized Edge Image</figcaption>
+        </figure>
+    </div>
+</div>
+
+<div class="container">
+    <h3>Part 1.3: Derivative of Gaussian (DoG) Filter</h3>
+    <p>Since using finite difference operators resulted in noisy outputs, I used the Gaussian filter to smooth the image and 
+        reduce noise before applying the Dx and Dy filters.
+    </p>
+    <div class="row">
+        <figure>
+            <img src="media/1.3/edge_blurred_dog.jpg" alt="Gradient Magnitude Image" />
+            <figcaption style="font-weight:bold">Gradient Magnitude Image</figcaption>
+        </figure>
+        <figure>
+            <img src="media/1.3/binary_blurred_dog.jpg" alt="Binarized Edge Image" />
+            <figcaption style="font-weight:bold">Binarized Edge Image</figcaption>
+        </figure>
+    </div>
+    <p>We can notice that the edges are more pronounced and there is less noise visible in the binarized edge image. Using DoG filters
+        lets us find more edges than using the finite difference filters on their own.
+    </p>
+    <p>
+        I also made the binarized edge image with a single convolution instead of two by creating a derivative of gaussian filters. I convolved the gaussian with D_x and D_y. The results are identical to the ones above 
+        which were created using two seperate convolutions.
+    </p>
+    <div class="row">
+        <figure>
+            <img src="media/1.3/dx_g.jpg" alt="Horizontal DoG Filter" />
+            <figcaption style="font-weight:bold">Horizontal DoG Filter</figcaption>
+        </figure>
+        <figure>
+            <img src="media/1.3/dy_g.jpg" alt="Vertical DoG Filter" />
+            <figcaption style="font-weight:bold">Vertical DoG Filte</figcaption>
+        </figure>
+        <figure>
+            <img src="media/1.3/dog_edge_camera.jpg" alt="Gradient Magnitude Image" />
+            <figcaption style="font-weight:bold">Gradient Magnitude Image</figcaption>
+        </figure>
+        <figure>
+            <img src="media/1.3/dog_binary_camera.jpg" alt="Binarized Edge Image" />
+            <figcaption style="font-weight:bold">Binarized Edge Image</figcaption>
+        </figure>
+    </div>
+</div>
+<h2>Part 2: Fun With Frequencies!</h2>
+<div class="container">
+    <h3>Part 2.1: Image "Sharpening"</h3>
+    <p>I sharpened some blurry images by making an unsharp mask filter. We'd first want to blur the image by convolving with a Gaussian filter.
+        Then we subtract the blurred image from the original image to get the high frequencies of the image. To sharpen, we add the high frequencies on
+        to the original image by whatever factor is needed. We see when we increase the sharpening amount, the picture gets more sharp and the grains appear 
+        more clearly.
+    </p>
+        <div class="row">
+        <figure>
+            <img src="media/2.1/original_taj.jpg" alt="Blurred Taj Mahal" />
+            <figcaption style="font-weight:bold">Blurry Image of Taj Mahal</figcaption>
+        </figure>
+        <figure>
+            <img src="media/2.1/sharpened_1_taj.jpg" alt="Sharpened Taj Mahal (factor of 1)" />
+            <figcaption style="font-weight:bold">Sharpened Image of Taj Mahal (factor of 1)</figcaption>
+        </figure>
+         <figure>
+            <img src="media/2.1/sharpened_2_taj.jpg" alt="Sharpened Taj Mahal (factor of 2)" />
+            <figcaption style="font-weight:bold">Sharpened Image of Taj Mahal (factor of 2)</figcaption>
+        </figure>
+    </div>
+    <div class="row">
+        <figure>
+            <img src="media/2.1/original_fairuz.jpg" alt="Blurred Fairuz" />
+            <figcaption style="font-weight:bold">Blurry Image of Fairuz</figcaption>
+        </figure>
+        <figure>
+            <img src="media/2.1/sharpened_1_fairuz.jpg" alt="Sharpened Fairuz" />
+            <figcaption style="font-weight:bold">Sharpened Image of Fairuz (factor of 1)</figcaption>
+        </figure>
+         <figure>
+            <img src="media/2.1/sharpened_2_fairuz.jpg" alt="Sharpened Fairuz" />
+            <figcaption style="font-weight:bold">Sharpened Image of Fairuz (factor of 2)</figcaption>
+        </figure>
+    </div>
+    <div class="row">
+        <figure>
+            <img src="media/2.1/original_majdal.jpg" alt="Blurred Majdal" />
+            <figcaption style="font-weight:bold">Blurry Image of Al Majdal</figcaption>
+        </figure>
+        <figure>
+            <img src="media/2.1/sharpened_1_majdal.jpg" alt="Sharpened Majdal" />
+            <figcaption style="font-weight:bold">Sharpened Image of Al Majdal (factor of 1)</figcaption>
+        </figure>
+          <figure>
+            <img src="media/2.1/sharpened_2_majdal.jpg" alt="Sharpened Majdal" />
+            <figcaption style="font-weight:bold">Sharpened Image of Al Majdal (factor of 2)</figcaption>
+        </figure>
+    </div>
+    <div class="row">
+        <figure>
+            <img src="media/2.1/original_thobe.jpg" alt="Blurred Thobe" />
+            <figcaption style="font-weight:bold">Blurry Image of a Woman in a Palestinian Thobe </figcaption>
+        </figure>
+        <figure>
+            <img src="media/2.1/sharpened_1_thobe.jpg" alt="Sharpened Thobe" />
+            <figcaption style="font-weight:bold">Sharpened Image of a Woman in a Palestinian Thobe (factor of 1)</figcaption>
+        </figure>
+         <figure>
+            <img src="media/2.1/sharpened_2_thobe.jpg" alt="Sharpened Thobe" />
+            <figcaption style="font-weight:bold">Sharpened Image of a Woman in a Palestinian Thobe (factor of 2)</figcaption>
+        </figure>
+    </div>
+    <p>Finally, I blurred and resharpened an already sharp image of Al Aqsa Mosque in Jerusalem. When I compared the original 
+        and resharpened image, there was a difference of 0.000524 which is almost 0. This shows that blurring then resharpening 
+        brings the image back to normal.
+    </p>
+    <div class="row">
+        <figure>
+            <img src="media/2.1/original_aqsa.jpg" alt="Original Al Aqsa" />
+            <figcaption style="font-weight:bold">Original Image of Al Aqsa Mosque</figcaption>
+        </figure>
+        <figure>
+            <img src="media/2.1/resharpened_aqsa.jpg" alt="Sharpened Al Aqsa" />
+            <figcaption style="font-weight:bold">Sharpened Image of Al Aqsa Mosque</figcaption>
+        </figure>
+</div>
+<div class="container">
+    <h3>Part 2.2: Hybrid Images"</h3>
+    <p> For the hybrid image of the tarsier and cat, I will show each step to get to the hybrid image. I used a low cutoff frequency of 15 and high cutoff frequency of 10.</p>
+    <div class="row">
+        <figure>
+            <img src="media/tarsier+ned/ned original.png" alt="Original Picture of the Cat" />
+            <figcaption style="font-weight:bold">Original Picture of the Cat </figcaption>
+        </figure>
+        <figure>
+            <img src="media/tarsier+ned/tarsier original.png" alt="Original Picture of the Tarsier" />
+            <figcaption style="font-weight:bold">Original Picture of the Tarsier</figcaption>
+        </figure>
+         <figure>
+            <img src="media/tarsier+ned/aligned_ned.jpg" alt="Aligned Image of Cat" />
+            <figcaption style="font-weight:bold">Cat Image Aligned</figcaption>
+        </figure>
+         <figure>
+            <img src="media/tarsier+ned/aligned_tarsier.jpg" alt="Aligned Image of Tarsier" />
+            <figcaption style="font-weight:bold">Tarsier Image Aligned</figcaption>
+        </figure>
+    </div>
+    <div class="row">
+        <figure>
+            <img src="media/tarsier+ned/fft_original_ned.jpg" alt="Fourier Transform of Cat" />
+            <figcaption style="font-weight:bold">Fourier Transform of the Original Cat Image </figcaption>
+        </figure>
+        <figure>
+            <img src="media/tarsier+ned/fft_original_tarsier.jpg" alt="Fourier Transform of Tarsier" />
+            <figcaption style="font-weight:bold">Fourier Transform of the Original Tarsier Image</figcaption>
+        </figure>
+        <figure>
+            <img src="media/tarsier+ned/fft_low_ned.jpg" alt="Fourier Transform of Low Cat" />
+            <figcaption style="font-weight:bold">Fourier Transform of the Low-Pass Cat Image </figcaption>
+        </figure>
+         <figure>
+            <img src="media/tarsier+ned/fft_high_tarsier.jpg" alt="Fourier Transform of High Tarsier" />
+            <figcaption style="font-weight:bold">Fourier Transform of the High-Pass Tarsier Image </figcaption>
+        </figure>
+    </div>
+    <div class="row">
+        <figure>
+            <img src="media/tarsier+ned/filtered_ned.jpg" alt="Filtered Cat" />
+            <figcaption style="font-weight:bold">Low-Pass Filtered Image of Cat</figcaption>
+        </figure>
+        <figure>
+            <img src="media/tarsier+ned/filtered_tarsier.jpg" alt="Filtered Tarsier" />
+            <figcaption style="font-weight:bold">High-Pass Filtered Image of Tarsier</figcaption>
+        </figure>
+        <figure>
+            <img src="media/tarsier+ned/hybrid_tarsier+ned.jpg" alt="Hybrid Image of Cat and Tarsier" />
+            <figcaption style="font-weight:bold">Hybrid Image of Cat and Tarsier </figcaption>
+        </figure>
+        <figure>
+            <img src="media/tarsier+ned/fft_hybrid.jpg" alt="Fourier Transform of Hybrid Image"/>
+            <figcaption style="font-weight:bold">Fourier Transform of the Hybrid Image</figcaption>
+        </figure>
+    </div>
+    <p>Below are the rest of my hybrid images</p>
+    <div class="row">
+        <figure>
+            <img src="media/2.2/ed1.jpg" alt="Original Picture of Ed Relaxed" />
+            <figcaption style="font-weight:bold">Original Picture of Ed Relaxed</figcaption>
+        </figure>
+        <figure>
+            <img src="media/2.2/ed2.jpg" alt="Original Picture of Ed in Distress" />
+            <figcaption style="font-weight:bold">Original Picture of Ed in Distress</figcaption>
+        </figure>
+        <figure>
+            <img src="media/2.2/hybrid_ed2+ed1.jpg" alt="Hybrid Image of Ed" />
+            <figcaption style="font-weight:bold">Hybrid Image of Ed</figcaption>
+        </figure>
+    </div>
+    <div class="row">
+        <figure>
+            <img src="media/2.2/derek.jpg" alt="Original Picture of Derek" />
+            <figcaption style="font-weight:bold">Original Picture of Derek</figcaption>
+        </figure>
+        <figure>
+            <img src="media/2.2/nutmeg.jpg" alt="Original Picture of Nutmeg" />
+            <figcaption style="font-weight:bold">Original Picture of Nutmeg</figcaption>
+        </figure>
+        <figure>
+            <img src="media/2.2/hybrid_nutmeg+derek.jpg" alt="Hybrid Image of Derek and Nutmeg" />
+            <figcaption style="font-weight:bold">Hybrid Image of Derek and Nutmeg</figcaption>
+        </figure>
+    </div>
+    <div class="row">
+        <figure>
+            <img src="media/2.2/soap1.jpg" alt="Original Picture of Cat Tasting Soap" />
+            <figcaption style="font-weight:bold">Original Picture of Cat Tasting Soap</figcaption>
+        </figure>
+        <figure>
+            <img src="media/2.2/soap2.jpg" alt="Original Picture of Cat Disgusted From Soap" />
+            <figcaption style="font-weight:bold">Original Picture of Cat Disgusted From Soap</figcaption>
+        </figure>
+        <figure>
+            <img src="media/2.2/hybrid_soap2+soap1.jpg" alt="Hybrid Image of Cat Soap" />
+            <figcaption style="font-weight:bold">Hybrid Image of Cat With Soap</figcaption>
+        </figure>
+    </div>
+</div>
+<div class="container">
+    <h3>Part 2.3 and 2.4: Multi-resolution Blending and the Oraple journey </h3>
+    <p>I blended an orange and apple using laplacian and gaussian stacks. The process visualization is shown below. The image on the right is the apple,
+        the image on the left is the orange, and the middle is the blend.
+    </p>
+     <div class="row">
+         <figure>
+        <img src="media/2.4/apple+orange frequency blend depth 0.png" alt="Depth 0" style="width:800px" />
+            <figcaption style="font-weight:bold">Level 0 of the Laplacian Stack</figcaption>
+        </figure>
+     </div>
+     <div class="row">
+         <figure>
+        <img src="media/2.4/apple+orange frequency blend depth 2.png" alt="Depth 2" style="width:800px" />
+            <figcaption style="font-weight:bold">Level 2 of the Laplacian Stack</figcaption>
+        </figure>
+     </div>
+     <div class="row">
+         <figure>
+        <img src="media/2.4/apple+orange frequency blend depth 4.png" alt="Depth 4" style="width:800px" />
+            <figcaption style="font-weight:bold">Level 4 of the Laplacian Stack</figcaption>
+        </figure>
+     </div>
+     <div class="row">
+         <figure>
+        <img src="media/2.4/apple+orange frequency blend depth 6.png" alt="Depth 6" style="width:800px" />
+            <figcaption style="font-weight:bold">Level 6 of the Laplacian Stack</figcaption>
+        </figure>
+     </div>
+     <div class="row">
+         <figure>
+        <img src="media/2.4/apple+orange_grid.jpg" alt="Oraple" style="width:800px" />
+            <figcaption style="font-weight:bold">Blended Oraple</figcaption>
+        </figure>
+     </div>
+    <p>Here are the rest of my blended images but with irregular masks!</p>
+     <div class="row">
+         <figure>
+        <img src="media/2.4/nido+hand_grid.jpg" alt="Eye Hand" style="width:800px" />
+            <figcaption style="font-weight:bold">Blended Eye On Hand</figcaption>
+        </figure>
+     </div>
+    <div class="row">
+         <figure>
+        <img src="media/2.4/metoer+night_grid.jpg" alt="Meteor In Sky" style="width:800px" />
+            <figcaption style="font-weight:bold">Meteor in the Sky</figcaption>
+        </figure>
+    </div>
+     <div class="row">
+         <figure>
+        <img src="media/2.4/aya+carmel_grid.jpg" alt="Me at the Beach" style="width:800px" />
+            <figcaption style="font-weight:bold">Me at Carmel</figcaption>
+        </figure>
+     </div>
+</div>
+</body>
