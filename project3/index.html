@@ -1,0 +1,177 @@
+<head>
+    <title>Project 3:[Auto]Stitching Photo Mosaics</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body>
+    <h1>CS180 Project 3:[Auto]Stitching Photo Mosaics</h1>
+    <h2>Part A: Image Warping And Mosaics</h2>
+    <div class="container">
+    <h3>A.1: Shoot the Pictures</h3>
+    <p>I took two pictures  of the College of Environmental Design building and surroundings where the transforms between them is projective.I did this by fixing the center of rotation 
+        and rotating my camera.
+    </p>
+     <div class="row">
+        <figure>
+            <img src="media/ced1.jpg" alt="Left Image"  />
+            <figcaption style="font-weight:bold">Left Image</figcaption>
+        </figure>
+        <figure>
+            <img src="media/ced2.jpg" alt="Right Image" />
+            <figcaption style="font-weight:bold">Right Image</figcaption>
+        </figure>
+     </div>
+    </div>
+
+    <div class="container">
+    <h3>A.2: Recover Homographies</h3>
+    <p> I used the website provided to choose the correspondences for the two images. They are shown below.
+    </p>
+     <div class="row">
+        <figure>
+            <img src="media/left_points.jpg" alt="Left Image"  />
+            <figcaption style="font-weight:bold">Left Image Correspondences</figcaption>
+        </figure>
+        <figure>
+            <img src="media/right_points.jpg" alt="Right Image" />
+            <figcaption style="font-weight:bold">Right Image Correspondences</figcaption>
+        </figure>
+     </div>
+    <p>To compute the homography matrix of the transformation, we need to solve the following system of equations 
+        using least squares: 
+    </p>
+    <p>
+        $$ 
+          \begin{bmatrix}
+          x_0 & y_0 & 1 & 0 & 0 & 0 & -u_0 x_0 & -u_0 y_0 \\
+          0 & 0 & 0 & x_0 & y_0 & 1 & -v_0 x_0 & -v_0 y_0 \\
+          x_1 & y_1 & 1 & 0 & 0 & 0 & -u_1 x_1 & -u_1 y_1 \\
+          0 & 0 & 0 & x_1 & y_1 & 1 & -v_1 x_1 & -v_1 y_1 \\
+          \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots \\
+          x_i & y_i & 1 & 0 & 0 & 0 & -u_i x_i & -u_i y_i \\
+          0 & 0 & 0 & x_i & y_i & 1 & -v_i x_i & -v_i y_i \\
+          \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots \\
+          x_n & y_n & 1 & 0 & 0 & 0 & -u_n x_n & -u_n y_n \\
+          0 & 0 & 0 & x_n & y_n & 1 & -v_n x_n & -v_n y_n \\
+
+          \end{bmatrix}
+          \begin{bmatrix}
+          h_1 \\ h_2 \\ h_3 \\ h_4 \\ h_5 \\ h_6 \\ h_7 \\ h_8
+          \end{bmatrix}
+          =
+          \begin{bmatrix}
+          u_0 \\ v_0 \\
+          u_1 \\ v_1 \\
+          \vdots \\ 
+          u_i \\ v_i \\
+          \vdots \\ 
+          u_n \\ v_n \\
+          \end{bmatrix}
+          \qquad \text{where $n$ is the number of correspondences}
+          $$
+    </p>
+
+    <p>The resulting homography matrix for the above images is: </p>
+    <p>\[
+H =
+\begin{bmatrix} 
+2.05192655 & -8.11182326 \times 10^{-2} & -1.21081845 \times 10^{3} \\
+4.64472688 \times 10^{-1} & 1.66872681 & -4.05911897 \times 10^{2} \\
+7.24445327 \times 10^{-4} & -6.03813775 \times 10^{-5} & 1.0 \\
+\end{bmatrix}
+\]
+    </div>
+    <div class="container">
+        <h3>A.3: Warp the Images</h3>
+        <p>I rectified two images using both nearest neighbor and bilinear interpolation. I noticed that the results were
+            very similar when using nearest neighbor to when using bilinear interpolation, but bilinear interpolation yielded
+            more clear images as I noticed there was a bit of a blur in the rectified images using NN.
+        </p>
+        <div class="row">
+            <figure>
+            <img src="media/orange.jpg" alt="Original Image"  />
+            <figcaption style="font-weight:bold">Original Image</figcaption>
+        </figure>
+        <figure>
+            <img src="media/nn_orange.jpg" alt="Rectified with NN" />
+            <figcaption style="font-weight:bold">Rectified with NN</figcaption>
+        </figure>
+         <figure>
+            <img src="media/bilinear_orange.jpg" alt="Rectified with bilinear" />
+            <figcaption style="font-weight:bold">Rectified with bilinear</figcaption>
+        </figure>
+        </div>
+          <div class="row">
+            <figure>
+            <img src="media/book.jpg" alt="Original Image"  />
+            <figcaption style="font-weight:bold">Original Image</figcaption>
+        </figure>
+        <figure>
+            <img src="media/nn_book.jpg" alt="Rectified with NN" />
+            <figcaption style="font-weight:bold">Rectified with NN</figcaption>
+        </figure>
+         <figure>
+            <img src="media/bilinear_book.jpg" alt="Rectified with bilinear" />
+            <figcaption style="font-weight:bold">Rectified with bilinear</figcaption>
+        </figure>
+        </div>
+    </div>
+    <div class="container">
+        <h3>A.4: Blend The Images Into A Mosaic</h3>
+        <p>
+            In order to blend my images into a mosaic, I decided to leave one image unwarped and warp the other imsage
+            into its projection. In order to align the images before blending, I computed the offsets to shift the images
+            into positive coordinates and then using those to calculate the final canvas's height and width and pasting the
+            images onto it. To blend, I first made an alpha mask first by setting all the valid pixels with values greater
+            than 0 to 1 for the warped image and reference image, then applying the distance transform and combining the two
+            masks. This is done to avoid edge artifacts in the output mosaic. I used a 2-band blend where the low frequencies were blended with the alpha mask I calculated while 
+            the high freqeuncies were blended with a binary alpha mask. Putting them together creates the mosaic.
+        </p>
+          <div class="row">
+        <figure>
+            <img src="media/ced1.jpg" alt="Left Image"  style="width:400px"/>
+            <figcaption style="font-weight:bold">Left Image</figcaption>
+        </figure>
+        <figure>
+            <img src="media/ced2.jpg" alt="Right Image" style="width:400px"/>
+            <figcaption style="font-weight:bold">Right Image</figcaption>
+        </figure>
+         <figure>
+            <img src="media/ced_mosaic.jpg" alt="Mosaic" style="width:650px"/>
+            <figcaption style="font-weight:bold">Mosaic</figcaption>
+        </figure>
+        </div>
+        <div class="row">
+        <figure>
+            <img src="media/campanile1.jpg" alt="Left Image"  style="width:400px"/>
+            <figcaption style="font-weight:bold">Left Image</figcaption>
+        </figure>
+        <figure>
+            <img src="media/campanile2.jpg" alt="Right Image" style="width:400px"/>
+            <figcaption style="font-weight:bold">Right Image</figcaption>
+        </figure>
+         <figure>
+            <img src="media/campanile_mosaic.jpg" alt="Mosaic" style="width:650px"/>
+            <figcaption style="font-weight:bold">Mosaic</figcaption>
+        </figure>
+        </div>
+                <div class="row">
+        <figure>
+            <img src="media/grimes1.jpg" alt="Left Image"  style="width:400px"/>
+            <figcaption style="font-weight:bold">Left Image</figcaption>
+        </figure>
+        <figure>
+            <img src="media/grimes2.jpg" alt="Right Image" style="width:400px"/>
+            <figcaption style="font-weight:bold">Right Image</figcaption>
+        </figure>
+         <figure>
+            <img src="media/grimes_mosaic.jpg" alt="Mosaic" style="width:650px"/>
+            <figcaption style="font-weight:bold">Mosaic</figcaption>
+        </figure>
+        </div>
+    </div>
+</body>
