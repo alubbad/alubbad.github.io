@@ -159,7 +159,7 @@ H =
             <figcaption style="font-weight:bold">Mosaic</figcaption>
         </figure>
         </div>
-                <div class="row">
+        <div class="row">
         <figure>
             <img src="media/grimes1.jpg" alt="Left Image"  style="width:400px"/>
             <figcaption style="font-weight:bold">Left Image</figcaption>
@@ -171,6 +171,101 @@ H =
          <figure>
             <img src="media/grimes_mosaic.jpg" alt="Mosaic" style="width:650px"/>
             <figcaption style="font-weight:bold">Mosaic</figcaption>
+        </figure>
+        </div>
+    </div>
+     <h2>Part B: Feature Matching for Autostitching</h2>
+     <div class="container">
+        <h3>B.1: Harris Corner Detection</h3>   
+        <p>The first step for autostitching a mosaic using automatic feature matching is to use Harris corner detection to 
+            find the corners in the image. However, that is not enough because Harris will return over 40,000 points, which
+            would be extremely computationally intensive to match with. So, we also need to select a fixed number of interest
+            points using Adaptive Non-Maximal Suppression. I chose the maximum number of points to be 200. I've shown below the 
+            detected corners overlaid on my images of CED, with and without ANMS. 
+        </p>  
+        <div class="row">
+        <figure>
+            <img src="media/left_corners.jpg" alt="Left Image"  style="width:500px"/>
+            <figcaption style="font-weight:bold">Left Image Detected Corners without ANMS</figcaption>
+        </figure>
+        <figure>
+            <img src="media/left_corners_anms.jpg" alt="Right Image" style="width:500px"/>
+            <figcaption style="font-weight:bold">Left Image Detected Corners With ANMS</figcaption>
+        </figure>
+        <figure>
+            <img src="media/right_corners.jpg" alt="Right Image"  style="width:500px"/>
+            <figcaption style="font-weight:bold">Right Image Detected Corners without ANMS</figcaption>
+        </figure>
+        <figure>
+            <img src="media/right_corners_anms.jpg" alt="Right Image" style="width:500px"/>
+            <figcaption style="font-weight:bold">Right Image Detected Corners With ANMS</figcaption>
+        </figure>
+        </div>  
+    </div>
+    <div class="container">
+        <h3>B.2: Feature Descriptor Extraction</h3>
+        <p>The next step is to extract normalized 8x8 feature descriptors for each feature point.
+            Below are five extracted features from each image. 
+        </p>
+        <div class="row">
+        <figure>
+            <img src="media/left_descriptors.jpg" alt="Left Image Descriptors"  style="width:900px"/>
+            <figcaption style="font-weight:bold">Left Image Descriptos </figcaption>
+        </figure>
+        </div>
+        <div class="row">
+        <figure>
+            <img src="media/right_descriptors.jpg" alt="Right Image Descriptors"  style="width:900px"/>
+            <figcaption style="font-weight:bold">Right Image Descriptos </figcaption>
+        </figure>
+        </div>
+    </div>
+    <div class="container">
+        <h3>B.3: Feature Matching</h3>
+        <p>Now we need to find pairs of feautures that look similar and are likely good matches using nearest neighbor
+            in Lowe's approach.
+            Below are the feature pairs visualized on the two images. 
+        </p>
+        <div class="row">
+        <figure>
+            <img src="media/matched_features.jpg" alt="Feature Matching"  style="width:900px"/>
+            <figcaption style="font-weight:bold">Feature Matching </figcaption>
+        </figure>
+        </div>
+        </div>
+    </div>
+    <div class="container">
+        <h3>B.4: RANSAC for Robust Homography</h3>
+        <p>Finally we need to run RANSAC on the matched points to find the greatest number of inliers that can be used to
+            compute the homography. After that, we can use the same technique as the first part to warp, align, and blend the
+            images together to form a mosaic. 
+            I used my images of CED and the campanile again for this part to create mosaics and added a new mosaic 
+            of my living room. I show comparisons between manual and autostitching for the first two mosaics below.
+            I noticed the auto-stitched image looks sharper and has less of a problem with ghosting!
+        </p>
+        <div class="row">
+        <figure>
+            <img src="media/ced_mosaic.jpg" alt="Mosaic of CED"  style="width:600px"/>
+            <figcaption style="font-weight:bold">Mosaic of CED using manual stitching </figcaption>
+        </figure>
+        <figure>
+            <img src="media/ced_auto_mosaic.jpg" alt="Mosaic of CED"  style="width:600px"/>
+            <figcaption style="font-weight:bold">Mosaic of CED using auto stitching </figcaption>
+        </figure>
+        </div>
+         <div class="row">
+        <figure>
+            <img src="media/campanile_mosaic.jpg" alt="Mosaic of Campanile"  style="width:600px"/>
+            <figcaption style="font-weight:bold">Mosaic of Campanile using manual stitching </figcaption>
+        </figure>
+        <figure>
+            <img src="media/campanile_auto_mosaic.jpg" alt="Mosaic of Campanile"  style="width:600px"/>
+            <figcaption style="font-weight:bold">Mosaic of Campanile using auto stitching </figcaption>
+        </figure>
+        </div>
+        <figure>
+            <img src="media/room_auto_mosaic.jpg" alt="Mosaic of Living Room"  style="width:800px"/>
+            <figcaption style="font-weight:bold">Mosaic of Living Room using manual stitching </figcaption>
         </figure>
         </div>
     </div>
