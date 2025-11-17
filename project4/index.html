@@ -1,0 +1,286 @@
+<head>
+    <title>Project 4: Neural Radiance Field!</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+    <h1>CS180 Project 4: Neural Radiance Field!</h1>
+    <div class="container">
+    <h2>Part 0: Calibrating Your Camera and Capturing a 3D Scan</h2>
+    <p>In this part, I created my own dataset to train with NeRF. First I calibrated my camera using 
+        ArUco tags, then captured a 3D scan of my object and used the intrinsics matrix I got from 
+        calibration to estimate the pose of the camera for each image of my object. Below is a visualization
+        of my camera frustums.
+    </p>
+    <div class="row">
+        <figure><image src="media/frustums1.png" style="height:400px"></image></figure>
+        <figure><image src="media/frustums2.png" style="height:400px"></image></figure>
+    </div>
+    </div>
+
+    <div class="container">
+    <h2>Part 1: Fit a Neural Field to a 2D Image</h2>
+    <p> I needed to fit a neural field that maps 2D pixel coordinates to RGB color values which I did by implementing a multi-layer perceptron
+        with the following architecture:
+    </p>
+    <div class="row">
+        <figure><image src="media/mlp_img.jpg"></image></figure>
+    </div>
+    <p>The model is four layers deep, with the first three having output dimension size 256 and the last having output dimension size
+        3 which corresponds to the three RGB channels. 
+        <br>
+        Hyperparameters:
+        <br>Number of iterations = 2000
+        <br>Learning rate = 0.01
+        <br>Optimizer = Adam
+        <br>Positional Encoding Frequency was varied between 3 and 10 in hyperparamter tuning.
+        <br>Channel size was varied between 256 and 512 in hyperparameter tuning.
+
+        <br>
+        I experimented with different hyperparameters to see how the results were affected. I tested out changing the positional 
+            encoding frequency and the channel size. I found that for the fox image, the best configuration was the one with L=10 and 
+            channel size = 256. The images below represent iterations 1, 20, 100, 500, 1000, 2000 during training.
+        </p>
+        <div class="row">
+        <figure><image src="media/fox.jpg"/>
+        <figcaption style="font-weight:bold">Original Image of Fox</figcaption>
+        </figure>
+        </div>
+        <div class="row">
+        <figure><image src="media/fox_reduced_freq.png" style="width:1000px"></image>
+        <figcaption style="font-weight:bold">L=3, Channel Size = 256</figcaption>
+        </figure>
+        </div>
+        <div class="row">
+        <figure><image src="media/fox_wider.png" style="width:1000px"></image>
+        <figcaption style="font-weight:bold">L=10, Channel Size = 512</figcaption>
+        </figure>
+        </div>
+        <div class="row">
+        <figure><image src="media/fox_wider_lower_freq.png" style="width:1000px"></image>
+        <figcaption style="font-weight:bold">L=3, Channel Size = 512</figcaption>
+        </figure>
+        </div>
+        <div class="row">
+        <figure><image src="media/fox_base.png" style="width:1000px"></image>
+        <figcaption style="font-weight:bold">L=10, Channel Size = 256 (BEST)</figcaption>
+        </figure>
+        </div>
+        <div class="row">
+        <figure><image src="media/fox_psnr_plot.png" style="width:600px"></image>
+        <figcaption style="font-weight:bold">PSNR Plot</figcaption>
+        </figure>
+        </div>
+    <p>For my own image, I trained my model on a picture of the Golden Gate bridge, and found that the best configuration was the one
+        with a wider channel size of 512 and L = 10.
+    </p>
+    <div class="row">
+        <figure><image src="media/golden_gate_bridge.jpg"/>
+        <figcaption style="font-weight:bold">Original Image of Fox</figcaption>
+        </figure>
+        </div>
+        <div class="row">
+        <figure><image src="media/golden_gate_reduced_freq.png" style="width:1000px"></image>
+        <figcaption style="font-weight:bold">L=3, Channel Size = 256</figcaption>
+        </figure>
+        </div>
+        <div class="row">
+        <figure><image src="media/golden_gate_wider.png" style="width:1000px"></image>
+        <figcaption style="font-weight:bold">L=10, Channel Size = 512 (BEST)</figcaption>
+        </figure>
+        </div>
+        <div class="row">
+        <figure><image src="media/golden_gate_wider_reduced_frew.png" style="width:1000px"></image>
+        <figcaption style="font-weight:bold">L=3, Channel Size = 512</figcaption>
+        </figure>
+        </div>
+        <div class="row">
+        <figure><image src="media/golden_gate_base.png" style="width:1000px"></image>
+        <figcaption style="font-weight:bold">L=10, Channel Size = 256</figcaption>
+        </figure>
+        </div>
+        <div class="row">
+        <figure><image src="media/golden_gate_psnr_plot.png" style="width:600px"></image>
+        <figcaption style="font-weight:bold">PSNR Plot</figcaption>
+        </figure>
+        </div>
+
+        <p>The final results for the different hyperparameters while training the image of the golden gate bridge are:</p>
+        <table style="border-collapse: collapse; margin: 20px auto; text-align: center;">
+        <!-- Column Titles -->
+        <tr>
+            <th style="padding: 8px;"></th> <!-- Empty corner -->
+            <th style="padding: 8px; font-size: 18px;">L=3</th>
+            <th style="padding: 8px; font-size: 18px;">L=10</th>
+        </tr>
+
+        <!-- Row 1 -->
+        <tr>
+            <th style="padding: 8px; font-size: 18px;">Channel Size 256</th>
+            <td style="border: 1px solid black; padding: 5px;">
+            <img src="media/gg_2.png" style="width: 300px; height: auto;">
+            </td>
+            <td style="border: 1px solid black; padding: 5px;">
+            <img src="media/gg_1.png" style="width:300px; height: auto;">
+            </td>
+        </tr>
+
+        <!-- Row 2 -->
+        <tr>
+            <th style="padding: 8px; font-size: 18px;">Channel Size 512</th>
+            <td style="border: 1px solid black; padding: 5px;">
+            <img src="media/gg_4.png" style="width: 300px; height: auto;">
+            </td>
+            <td style="border: 1px solid black; padding: 5px;">
+            <img src="media/gg_3.png" style="width: 300px; height: auto;">
+            </td>
+        </tr>
+        </table>
+
+    </div>
+
+    <h2>Part 2: Fit a Neural Radiance Field from Multi-view Images</h2>
+
+    <div class="container">
+       <h3>Part 2.1: Create Rays from Cameras</h3>
+        <p>To render the 3D scene, I built a set of functions that map pixel locations into 3D rays, each defined by an origin (ro) 
+        and a normalized direction (rd). The system first converts pixel coordinates into camera coordinates using the intrinsic 
+        matrix, then maps them into world coordinates through the camera-to-world transform. The ray origin is taken directly from 
+        the camera’s translation component, while the ray direction is obtained by normalizing the vector from this origin to the 
+        world-space position of a point at unit depth. All coordinate conversions and ray computations are implemented using batched
+        matrix multiplications for efficiency. </p>
+    </div>
+        <div class="container">
+       <h3>Part 2.2: Sampling</h3>
+        <p>To make training efficient, I precomputed and flattened all rays and their RGB values once at initialization. During 
+            training, I sampled batches of random rays by selecting random images and random pixels within them, and for validation 
+            I retrieved all rays from a single image to render full outputs. I also implemented point sampling along each 
+            ray to obtain the 3D coordinates used by the NeRF model to learn scene geometry and appearance. </p>
+    </div>
+     </div>
+        <div class="container">
+       <h3>Part 2.3: Putting the dataloader all together</h3>
+        <p>In this step, confirmed all my functions were implemented correctly by visualising the rays coming out of each image.</p>
+        <div class="row">
+            <img src="media/dataloader 2.3.png" style="margin:auto; width:600px"/>
+        </div>
+    </div>
+    <div class="container">
+        <h3>Part 2.4: Neural Radiance Field</h3>
+        <p>I implemeted a deep neural network that handles higher dimensional inputs such as the 3D position and direction vectors and
+            outputs the RGB and density associated with the inputs.</p>
+        <div class="row">
+            <img src="media/mlp_nerf.png" style="margin:auto; width:700px"/>
+        </div>
+    </div>
+    <div class="container">
+    <h3>Part 2.5: Volume Rendering</h3>
+    <p>Volume rendering computes the final pixel color by integrating the contributions of all sampled points along a ray. 
+        For each point, the network outputs both a color and a density value, and these are combined using a discretized form 
+        of the volume rendering equation. The method accumulates color from back to front, using the predicted densities to 
+        determine opacity and the transmittance along the ray to weight each contribution. Distance intervals between consecutive 
+        samples (δᵢ) are also used to approximate how much each point contributes to the final rendered pixel.</p>
+        <p>I trained on the lego dataset using:
+            <br>learning rate 1e-3
+            <br>2000 iterations
+            <br>batch size= 10,000, with 64 samples per ray
+            <br>near=2, far=6
+         </p>
+        <p>Below are images of the training process. I ended up with a validation PSNR higher than 24.</p>
+    <div class="row">
+         <figure>
+        <img src="media/novel_view_iter_300 (4).jpg"/>
+        <figcaption style="font-weight:bold">Iter 300</figcaption>
+        </figure>
+        <figure>
+        <img src="media/novel_view_iter_600.jpg"/>
+        <figcaption style="font-weight:bold">Iter 600</figcaption>
+        </figure>
+        <figure>
+        <img src="media/novel_view_iter_900 (1).jpg"/>
+        <figcaption style="font-weight:bold">Iter 900</figcaption>
+        </figure>
+    <!-- </div>
+    <div class="row"> -->
+        <figure>
+        <img src="media/novel_view_iter_1200 (1).jpg"/>
+        <figcaption style="font-weight:bold">Iter 1200</figcaption>
+        </figure>
+        <figure>
+        <img src="media/novel_view_iter_1500 (1).jpg"/>
+        <figcaption style="font-weight:bold">Iter 1500</figcaption>
+        </figure>
+        <figure>
+        <img src="media/novel_view_iter_1800 (1).jpg"/>
+        <figcaption style="font-weight:bold">Iter 1800</figcaption>
+        </figure>
+    </div>
+    <h4 style="color:darkgreen">Validation PSNR</h4>
+    <figure>
+        <img src="media/psnr_nerf_lego.png" style="width:700px"/>
+        <figcaption style="font-weight:bold">Validation PSNR Plot</figcaption>
+    </figure>
+    <h4>Below is a spherical rendering video of the Lego using provided test cameras</h4>
+    <figure>
+        <img src="media/nerf (4).gif" style="width:700px"/>
+    </figure>
+</div>
+<div class="container">
+    <h3>Part 2.6: Training with Your Own Data</h3>
+    <p>In this part, I used my own custom dataset to render a novel view of my object which is a miniature oud I got from Egypt!
+        I had to change some of the hyperparameters for this to match my data.
+        <br>
+        Changed Hyperparameters:
+        <br>batch size=5000
+        <br>near = 0.02, far = 0.5
+        <br>Learning rate = 5e-4
+        <br> I used the same number of iterations(2000) and number of samples per ray (64) as 2.5.
+    </p>
+    <p>Below are some intermediate renders of the scene during training</p>
+    <div class="row">
+        <figure>
+            <img src="media/oud_iter_300 (8).jpg">
+        <figcaption style="font-weight:bold">Iter 300</figcaption>
+        </figure>
+                <figure>
+            <img src="media/oud_iter_600 (4).jpg">
+        <figcaption style="font-weight:bold">Iter 600</figcaption>
+        </figure>
+                <figure>
+            <img src="media/oud_iter_1200 .jpg">
+        <figcaption style="font-weight:bold">Iter 1200</figcaption>
+        </figure>
+                        <figure>
+            <img src="media/oud_iter_1800 (5).jpg">
+        <figcaption style="font-weight:bold">Iter 1800</figcaption>
+        </figure>
+        </figure>
+    </div>
+    <div class="row">
+    <figure>
+            <img src="media/psnr_nerf (5).png">
+        <figcaption style="font-weight:bold">Validation PSNR Plot</figcaption>
+        </figure>
+    <figure>
+            <img src="media/loss_nerf.png">
+        <figcaption style="font-weight:bold">Training Loss Plot</figcaption>
+        </figure>
+        </div>
+    <div class="row">
+        <figure>
+            <img src="media/og_image.jpg">
+            <figcaption style="font-weight:bold">Ground Truth</figcaption>
+        </figure>
+        <figure>
+        <img src="media/oud_iter_2000 (2).jpg">
+        <figcaption style="font-weight:bold">Final Image Render</figcaption>
+        </figure>
+    </div>
+    <div class="row">
+         <figure>
+            <img src="media/my_orbit (1).gif">
+            <figcaption style="font-weight:bold">Ground Truth</figcaption>
+        </figure>
+    </div>
+</div>
+</body>
