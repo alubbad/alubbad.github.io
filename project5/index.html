@@ -1,0 +1,322 @@
+<head>
+    <title>Project 5: Fun With Diffusion Models!</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+    <h1>CS180 Project 5: Fun With Diffusion Models!</h1>
+    <div class="container">
+    <h2>Part A: The Power of Diffusion Models!</h2>
+
+    <h3>Part 0: Setup</h3>
+    <p>I created a dictionary of embeddings and chose 3 text prompts to generate imgs. The num_inference_steps values I chose 
+        are 10 and 100. I noticed that the higher num_inference_steps values result in more detailed imgs with better
+        quality.
+    </p>
+    <p>I'm using a random seed of value 100.</p>
+    <h4>num_inference_steps=10</h4>
+    <div class="row">
+        <figure><img src="media/snow10.png" ></img>
+        <figcaption style="font-weight:bold">an oil painting of a snowy mountain village</figcaption></figure>
+        <figure><img src="media/amalfi10.png"></img>
+        <figcaption style="font-weight:bold">a photo of the amalfi coast</figcaption></figure>
+        <figure><img src="media/dog10.png"></img>
+        <figcaption style="font-weight:bold">a photo of a dog</figcaption></figure>
+    </div>
+    <h4>num_inference_steps=100</h4>
+    <div class="row">
+        <figure><img src="media/snow100.png" ></img>
+        <figcaption style="font-weight:bold">an oil painting of a snowy mountain village</figcaption></figure>
+        <figure><img src="media/amalfi100.png"></img>
+        <figcaption style="font-weight:bold">a photo of the amalfi coast</figcaption></figure>
+        <figure><img src="media/dog100.png"></img>
+        <figcaption style="font-weight:bold">a photo of a dog</figcaption></figure>
+    </div>
+    </div>
+
+    <div class="container">
+    <h3>Part 1: Sampling Loops</h2>
+    <h3>1.1 Implementing the Forward Process</h3>
+    <p> I implemented the forward process on an image of the campanile, which takes a clean image and adds noise to it.
+    </p>
+    <div class="row">
+        <figure><img src="media/campanile_original.png"></img>
+        <figcaption style="font-weight:bold">Original Image</figcaption></figure>
+        <figure><img src="media/campanile_noise_250.png"></img>
+        <figcaption style="font-weight:bold">Noisy Campanile at t=250</figcaption></figure>
+        <figure><img src="media/campanile_noise_500.png"></img>
+        <figcaption style="font-weight:bold">Noisy Campanile at t=500</figcaption></figure>
+        <figure><img src="media/campanile_noise_750.png"></img>
+        <figcaption style="font-weight:bold">Noisy Campanile at t=750</figcaption></figure>
+    </div>
+    <h3>1.2 Classical Denoising</h3>
+    <p> I took the noisy images for timesteps [250, 500, 750], and used Gaussian blur filtering to try to remove the noise. The 
+        results were not good and did not manage to denoise properly. 
+    </p>
+    <div class="row">
+        <figure><img src="media/campanile_noise_250.png" style="width:300px"></img>
+        <figcaption style="font-weight:bold">Noisy Campanile at t=250</figcaption></figure>
+        <figure><img src="media/campanile_noise_500.png" style="width:300px"></img>
+        <figcaption style="font-weight:bold">Noisy Campanile at t=500</figcaption></figure>
+        <figure><img src="media/campanile_noise_750.png" style="width:300px"></img>
+        <figcaption style="font-weight:bold">Noisy Campanile at t=750</figcaption></figure>
+    </div>
+        <div class="row">
+        <figure><img src="media/campanile_denoise_250.png" style="width:300px"></img>
+        <figcaption style="font-weight:bold">Gaussian Blur Denoising at t=250</figcaption></figure>
+        <figure><img src="media/campanile_denoise_500.png" style="width:300px"></img>
+        <figcaption style="font-weight:bold">Gaussian Blur Denoising at t=500</figcaption></figure>
+        <figure><img src="media/campanile_denoise_750.png" style="width:300px"></img>
+        <figcaption style="font-weight:bold">Gaussian Blur Denoising at t=750</figcaption></figure>
+    </div>
+    <h3>1.3 One-Step Denoising</h3>
+    <p>I used a pretrained UNet to perform one step denoising on the noisy images. It was used to recover Gaussian noise 
+        from the image. Then, I removed this noise to recover the original image.
+    </p>
+    <div class="row">
+    <figure><img src="media/campanile_original.png" style="width:300px"></img>
+    <figcaption style="font-weight:bold">Original Campanile</figcaption></figure>
+    <figure><img src="media/campanile_noise_250.png" style="width:300px"></img>
+    <figcaption style="font-weight:bold">Noisy Image at t=250</figcaption></figure>
+    <figure><img src="media/campanile_250.png" style="width:300px"></img>
+    <figcaption style="font-weight:bold">One Step Denoising at t=250</figcaption></figure>
+    </div>
+    <div class="row">
+    <figure><img src="media/campanile_original.png" style="width:300px"></img>
+    <figcaption style="font-weight:bold">Original Campanile</figcaption></figure>
+    <figure><img src="media/campanile_noise_500.png" style="width:300px"></img>
+    <figcaption style="font-weight:bold">Noisy Image at t=500</figcaption></figure>
+    <figure><img src="media/campanile_500.png" style="width:300px"></img>
+    <figcaption style="font-weight:bold">One Step Denoising at t=500</figcaption></figure>
+    </div>
+    <div class="row">
+    <figure><img src="media/campanile_original.png" style="width:300px"></img>
+    <figcaption style="font-weight:bold">Original Campanile</figcaption></figure>
+    <figure><img src="media/campanile_noise_750.png" style="width:300px"></img>
+    <figcaption style="font-weight:bold">Noisy Image at t=750</figcaption></figure>
+    <figure><img src="media/campanile_750.png" style="width:300px"></img>
+    <figcaption style="font-weight:bold">One Step Denoising at t=750</figcaption></figure>
+    </div>
+    <h3>1.4 Iterative Denoising</h3>
+    <p>
+        I implemented iterative denoising by starting with a noisy image at t=990 and progressively reduced noise using strided 
+        timesteps.
+    </p>
+    <div class="row">
+        <figure><img src="media/noisy_campanile_90.png" style="width:250px"></img>
+        <figcaption style="font-weight:bold">Noisy Campanile at t=90</figcaption></figure>
+        <figure><img src="media/noisy_campanile_240.png" style="width:250px"></img>
+        <figcaption style="font-weight:bold">Noisy Campanile at t=240</figcaption></figure>
+        <figure><img src="media/noisy_campanile_390.png" style="width:250px"></img>
+        <figcaption style="font-weight:bold">Noisy Campanile at t=390</figcaption></figure>
+        <figure><img src="media/noisy_campanile_540.png" style="width:250px"></img>
+        <figcaption style="font-weight:bold">Noisy Campanile at t=540</figcaption></figure>
+        <figure><img src="media/noisy_campanile_690.png" style="width:250px"></img>
+        <figcaption style="font-weight:bold">Noisy Campanile at t=690</figcaption></figure>
+    </div>
+        <div class="row">
+        <figure><img src="media/campanile_1.4.png" style="width:1200px"></img></figure>
+    </div>
+    <h3>1.5 Diffusion Model Sampling</h3>
+    <p>
+        In this part, a diffusion model was used to generate images from scratch. We do this by setting i_start = 0 and passing 
+        im_noisy as random noise. This effectively denoises pure noise. I used the prompt "a high quality photo"
+    </p>
+    <div class="row">
+        <figure><img src="media/images_1.5.png" style="width:1200px"></img></figure>
+    </div>
+
+    <h3>1.6 Classifier-Free Guidance (CFG)</h3>
+    <p>
+        I used classifier free guidance to enhance the quality of the generated images by combining conditional and unconditional
+        noise estimates with a scaling factor set to 7.
+    </p>
+    <div class="row">
+        <figure><img src="media/images_1.6.png" style="width:1200px"></img></figure>
+    </div>
+
+    <h3>1.7 Image-to-image Translation</h3>
+    <div class="row">
+        <figure><img src="media/images_1.7.png" style="width:500px"></img></figure>
+        <figure><img src="media/images_1.7(2).png" style="width:500px"></img></figure>
+        <figure><img src="media/campanile_original.png" style="width:180px"></img>
+        <figcaption style="font-weight:bold">Original Campanile</figcaption></figure>
+    </div>
+        <div class="row">
+        <figure><img src="media/suitcase_1.7.png" style="width:500px"></img></figure>
+        <figure><img src="media/suitcase_1.7(2).png" style="width:500px"></img></figure>
+        <figure><img src="media/suitcase_original.png" style="width:180px"></img>
+        <figcaption style="font-weight:bold">Original Suitcase</figcaption></figure>
+    </div>
+    <div class="row">
+        <figure><img src="media/chair_1.7.png" style="width:500px"></img></figure>
+        <figure><img src="media/chair_1.7(2).png" style="width:500px"></img></figure>
+        <figure><img src="media/chair_original.png" style="width:180px"></img>
+        <figcaption style="font-weight:bold">Original Chair</figcaption></figure>
+    </div>
+    <h3>1.7.1 Editing Hand-Drawn and Web Images</h3>
+    <h4>Results: Web Image</h4>
+    <div class="row">
+        <figure>
+            <img src="media/watermelon_gen.png" style="width:1000px; height:200px"></img>
+            <figcaption>Generated Images</figcaption>
+        </figure>
+        <figure>
+            <img src="media/watermelon_og.png" style="width:180px; height:200px"></img>
+            <figcaption>Original Image</figcaption>
+        </figure>
+    </div>
+    <h4>Results: Hand Drawn Images</h4>
+    <div class="row">
+        <figure>
+            <img src="media/lake_gen.png" style="width:1000px; height:200px"></img>
+            <figcaption>Generated Images</figcaption>
+        </figure>
+        <figure>
+            <img src="media/lake_og.png" style="width:180px; height:200px"></img>
+            <figcaption>Original Image</figcaption>
+        </figure>
+    </div>
+    <h3>1.7.2 Inpainting</h3>
+    <p>
+        Here I used a mask to apply iterative denoising and generate new content in the masked areas. With this method,
+        I inpainted the top of the campanile and the Palace of Fine Arts as well as the Mona Lisa's head.
+    </p>
+    <div class="row">
+        <figure>
+            <img src="media/campanile_original.png"></img>
+            <figcaption>Campanile</figcaption>
+        </figure>
+        <figure>
+            <img src="media/mask.png"></img>
+            <figcaption>Mask</figcaption>
+        </figure>
+        <figure>
+            <img src="media/replace.png"></img>
+            <figcaption>Hole to Fill</figcaption>
+        </figure>
+        <figure>
+            <img src="media/campanile_inpainted.png"></img>
+            <figcaption>Campanile Inpainted</figcaption>
+        </figure>
+    </div>
+    <div class="row">
+        <figure>
+            <img src="media/palace.png"></img>
+            <figcaption>Campanile</figcaption>
+        </figure>
+        <figure>
+            <img src="media/mask.png"></img>
+            <figcaption>Mask</figcaption>
+        </figure>
+        <figure>
+            <img src="media/replace_2.png"></img>
+            <figcaption>Hole to Fill</figcaption>
+        </figure>
+        <figure>
+            <img src="media/palace_inpainted.png"></img>
+            <figcaption>Campanile Inpainted</figcaption>
+        </figure>
+    </div>
+        <div class="row">
+        <figure>
+            <img src="media/mona_lisa.png"></img>
+            <figcaption>Campanile</figcaption>
+        </figure>
+        <figure>
+            <img src="media/mask_2.png"></img>
+            <figcaption>Mask</figcaption>
+        </figure>
+        <figure>
+            <img src="media/replace_3.png"></img>
+            <figcaption>Hole to Fill</figcaption>
+        </figure>
+        <figure>
+            <img src="media/mona_lisa_inpainted.png"></img>
+            <figcaption>Campanile Inpainted</figcaption>
+        </figure>
+    </div>
+    <h3>Text-Conditioned Image-to-image Translation</h3>
+    <p>
+        In this part, I used the prompt "a pencil" to guide how an image evolves during denoising. The process blends the original 
+        image with pencil-themed elements. I applied this on the campanile image and two of my own images as well! The images on the
+        far right of each row are the original images.
+    </p>
+    <div class="row">
+        <figure>
+            <img src="media/campanile_pencil.png" style="width: 760px"></img>
+        </figure>
+        <figure>
+            <img src="media/campanile_pencil(2).png" style="width: 370px"></img>
+        </figure>
+        <figure>
+            <img src="media/campanile_original.png" style="width: 200px"></img>
+        </figure>
+    </div>
+        <div class="row">
+        <figure>
+            <img src="media/palace_pencil.png" style="width: 550px"></img>
+        </figure>
+        <figure>
+            <img src="media/palace_pencil(2).png" style="width: 550px"></img>
+        </figure>
+        <figure>
+            <img src="media/palace.png" style="width: 200px"></img>
+        </figure>
+    </div>
+    <div class="row">
+        <figure>
+            <img src="media/suitcase_pencil.png" style="width: 550px"></img>
+        </figure>
+        <figure>
+            <img src="media/suitcase_pencil(2).png" style="width: 550px"></img>
+        </figure>
+        <figure>
+            <img src="media/suitcase_original.png" style="width: 200px"></img>
+        </figure>
+    </div>
+    <h3>1.8 Visual Anagrams</h3>
+    <p>
+        In this part, I implemented Visual Anagrams and created optical illusions with diffusion models where
+        an image that looks like "an oil painting of people around a campfire", but when flipped upside down 
+        will reveal "an oil painting of an old man". By denoising the image with two different prompts (one for original and one
+        for flipped) and averaging the noise estimates, we get this effect.
+    </p>
+    <div class="row">
+        <figure>
+            <img src="media/old_man.png"></img>
+            <figcaption>"an oil painting of an old man"</figcaption>
+        </figure>
+        <figure>
+            <img src="media/campfire_1.png"></img>
+            <figcaption>"an oil painting of people around a campfire"</figcaption>
+        </figure>
+    </div>
+
+    <div class="row">
+        <figure>
+            <img src="media/barista.png"></img>
+            <figcaption>"a photo of a hipster barista"</figcaption>
+        </figure>
+        <figure>
+            <img src="media/hat-man.png"></img>
+            <figcaption>"a man wearing a hat"</figcaption>
+        </figure>
+    </div>
+    <h3>1.9 Hybrid Images</h3>
+    <p>
+        For hybrid images, we combine low-frequency details from one image with high-frequency details from another using a 
+        diffusion model. We apply high-pass and low-pass filters on the noise estimates for the different prompts.
+    </p>
+    <div class="row">
+        <figure>
+            <img src="media/skull-waterfall.png"></img>
+            <figcaption>Far:"a lithograph of a skull". Close: "a lithograph of waterfalls"</figcaption>
+        </figure>
+        <figure>
+            <img src="media/amalfi_hat(1).png"></img>
+            <figcaption>Far:"a man wearing a hat". Close: "a photo of the amalfi coast"</figcaption>
+        </figure>
+    </div>
+</div>
+</body>
