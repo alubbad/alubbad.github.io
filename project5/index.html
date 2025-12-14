@@ -319,4 +319,193 @@
         </figure>
     </div>
 </div>
+
+<div class="container">
+    <h2>Part A: The Power of Diffusion Models!</h2>
+
+    <h3>Part 1: Training a Single-Step Denoising UNet</h3>
+    <p>In this part, I built a simple one-step denoiser where given a noisy image z, I trained a denoiser D such that
+        it maps z to a clean image x.
+    </p>
+    <h3>1.1 Implementing the UNet</h3>
+    <p>Below is the diagram for the unconditional UNet I built for the denoiser.</p>
+     <figure>
+            <img src="media/1.1_unet.png" style="width:500px"></img>
+    </figure>
+
+    <h3>1.2 Using the UNet to Train a Denoiser</h3>
+    <h4>Noising Process Visualization</h4>
+    <p>Below I show the noising process using sigma = [0.0, 0.2, 0.4, 0.5, 0.6, 0.8, 1.0]</p>
+    <figure>
+            <img src="media/5b_1.2.png" style="width:600px"></img>
+    </figure>
+
+    <h4>Training Results</h4>
+    <p>I trained with sigma = 0.5, batch size 256, over 5 epochs, and learning rate 1e-4.</p>
+    <div class="row">
+        <figure>
+            <img src="media/1.2.1_training_loss_curve.png" style="height:400px; width:auto"></img>
+        </figure>
+        <figure>
+            <img src="media/1.2.1_average_loss_epoch.png" style="height:400px; width:auto"></img>
+        </figure>
+    </div>
+    <div class="row">
+        <figure>
+            <img src="media/1.2.1_epoch1.png" style="width:400px"></img>
+            <figcaption>Results on digits from the test set after 1 epoch of training</figcaption>
+        </figure>
+        <figure>
+            <img src="media/1.2.1_epoch5.png" style="width:400px"></img>
+            <figcaption>Results on digits from the test set after 5 epochs of training</figcaption>
+        </figure>
+    </div>
+    <h4>Out of Distribution Testing</h4>
+    <p>I tested to see how my denoiser works with other noise levels. I observed that although it works great for sigma = 0.5, 
+        the model's performance drops significantly for very very high noise levels. Also, for noise level 0, it results in a
+        blurrier image because it tries to denoise an clean denoised image.
+    </p>
+    <div class="row">
+        <figure>
+            <img src="media/1.2.2.png" style="width:400px"></img>
+            <figcaption>Denoising for different noise levels</figcaption>
+        </figure>
+    </div>
+    
+    <h4>Denoising Pure Noise Results</h4>
+    <p>Below are the results from denoising a pure, random Gaussian noise.</p>
+        <div class="row">
+        <figure>
+            <img src="media/1.2.3_train_curve.png" style="height:400px; width:auto"></img>
+        </figure>
+        <figure>
+            <img src="media/1.2.3_epoch_curve.png" style="height:400px; width:auto"></img>
+        </figure>
+    </div>
+    <div class="row">
+        <figure>
+            <img src="media/1.2.3_epoch1.png" style="width:500px"></img>
+            <figcaption>Results on digits from the test set after 1 epoch of training</figcaption>
+        </figure>
+        <figure>
+            <img src="media/1.2.3_epoch5.png" style="width:600px"></img>
+            <figcaption>Results on digits from the test set after 5 epochs of training</figcaption>
+        </figure>
+    </div>
+    <h4>Observations</h4>
+    <p>The model generates the same blurry image reardless of input noise. This is because it minimizes the expected square 
+        differences to all training examples. This means that since pure noise has no structure and contains no information
+        about which digit to generate, the optimal prediction will be the mean of the training distribution. This is why the 
+        result is the same blurry images containing features from multiple digits but not representing any single digit clearly.
+    </p>
+</div>
+<div class="container">
+    <h2>Part 2: Training a Flow Matching Model</h2>
+
+    <h3>2.1 Adding Time Conditioning to UNet</h3>
+    <p>I injected a scalar t into my UNet model to condition it. </p>
+    <div class="row">
+        <figure>
+            <img src="media/2.1_unet.png" style="width:500px"></img>
+        </figure>
+    </div>
+
+    <h3>2.2 Training the UNet</h3>
+    <p>To train the time-conditioned UNet, we pick a random image x from the training set, set a random timestep t, add noise to
+        x to get xt, and train the denoiser to predict the flow at xt.
+    </p>
+    <h4>Training loss curves</h4>
+    <div class="row">
+        <figure>
+            <img src="media/2.2_train_curve.png" style="height:400px; width:auto"></img>
+        </figure>
+        <figure>
+            <img src="media/2.2_epoch_curve.png" style="height:400px; width:auto"></img>
+        </figure>
+    </div>
+
+    <h3>2.3 Sampling from the UNet</h3>
+    <p>Sample quality improves dramatically with more training. After 1 epoch, there are some recognizable features but
+        it's still hard to recognize the digit. By epoch 10, the generated digits are much more clear and recognizable.</p>
+    <div class="row">
+        <figure>
+            <img src="media/2.3_epoch1.png" style="width:400px"></img>
+            <figcaption>Results on digits from the test set after 1 epoch of training</figcaption>
+        </figure>
+        <figure>
+            <img src="media/2.3_epoch5.png" style="width:400px"></img>
+            <figcaption>Results on digits from the test set after 5 epochs of training</figcaption>
+        </figure>
+        <figure>
+            <img src="media/2.3_epoch10.png" style="width:400px"></img>
+            <figcaption>Results on digits from the test set after 10 epochs of training</figcaption>
+        </figure>
+    </div>
+    <div class="row">
+        <figure>
+            <img src="media/2.3_comparison.png" style="width:500px"></img>
+        </figure>
+    </div>
+
+    <h3>2.4 Adding Class-Conditioning to UNet</h3>
+    <p>To improve our image generation, we conditioned our UNet on the class of the digit 0-9.</p>
+
+    <h3>2.5 Training the UNet</h3>
+    <h4>Training loss curves for class-conditional flow matching model with classifier-free guidance</h4>
+    <div class="row">
+        <figure>
+            <img src="media/2.5_train_curve.png" style="height:400px; width:auto"></img>
+        </figure>
+        <figure>
+            <img src="media/2.5_epoch_curve.png" style="height:400px; width:auto"></img>
+        </figure>
+    </div>
+
+    <h3>2.6 Sampling from the UNet</h3>
+    <p>Showing 4 instances of each digit at different training stages with exponential learning rate scheduler:</p>
+    <div class="row">
+        <figure>
+            <img src="media/2.6_epoch1.png" style="width:400px"></img>
+            <figcaption>Results on digits from the test set after 1 epoch of training</figcaption>
+        </figure>
+        <figure>
+            <img src="media/2.6_epoch5.png" style="width:400px"></img>
+            <figcaption>Results on digits from the test set after 5 epochs of training</figcaption>
+        </figure>
+        <figure>
+            <img src="media/2.6_epoch10.png" style="width:400px"></img>
+            <figcaption>Results on digits from the test set after 10 epochs of training</figcaption>
+        </figure>
+    </div>
+    <div class="row">
+        <figure>
+            <img src="media/2.6_comparison.png" style="width:500px"></img>
+        </figure>
+    </div>
+    <p>We can see that our results adding class conditioning here are much better than just time conditioning after 10 epochs.</p>
+
+    <h3>Fixed Learning Rate (No Scheduler)</h3>
+    <p>I removed the learning rate scheduler and decreased the learning rate to 1e-3. This ended up improving the results for epoch 
+        1 but it still converged to almost the same quality of images as the previous denoiser for epoch 10.
+    </p>
+    <div class="row">
+        <figure>
+            <img src="media/2.6.2_epoch1.png" style="width:400px"></img>
+            <figcaption>Results on digits from the test set after 1 epoch of training</figcaption>
+        </figure>
+        <figure>
+            <img src="media/2.6.2_epoch5.png" style="width:400px"></img>
+            <figcaption>Results on digits from the test set after 5 epochs of training</figcaption>
+        </figure>
+        <figure>
+            <img src="media/2.6.2_epoch10.png" style="width:400px"></img>
+            <figcaption>Results on digits from the test set after 10 epochs of training</figcaption>
+        </figure>
+    </div>
+    <div class="row">
+        <figure>
+            <img src="media/2.6.2_comparison.png" style="width:500px"></img>
+        </figure>
+    </div>
+</div>
 </body>
